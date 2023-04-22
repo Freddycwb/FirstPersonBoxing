@@ -5,6 +5,7 @@ using static Unity.VisualScripting.Member;
 
 public class Sound : MonoBehaviour
 {
+    public bool isMusic;
     public AudioClip audio;
     [SerializeField] private AudioSource source;
 
@@ -12,12 +13,20 @@ public class Sound : MonoBehaviour
     {
         name = audio.name + "Sound";
         source.clip = audio;
-        StartCoroutine("Lifetime");
+        if(!isMusic)
+        {
+            StartCoroutine("Lifetime");
+        }
+        else
+        {
+            source.enabled = true;
+        }
     }
 
     private IEnumerator Lifetime()
     {
         source.enabled = true;
+        source.volume = PlayerPrefs.GetFloat("sfxVolume");
         yield return new WaitForSeconds(audio.length);
         Destroy(gameObject);
     }

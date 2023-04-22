@@ -21,12 +21,22 @@ public class MatchManager : NetworkBehaviour
 
     private List<GameObject> players = new List<GameObject>();
 
+    public void ResetLobbyReady()
+    {
+        numberOfPlayers = 0;
+        numberOfPlayersReady = 0;
+    }
 
     public void GetPlayers()
     {
         numberOfPlayers++;
     }
     
+    public void PlayerLeave()
+    {
+        numberOfPlayers--;
+    }
+
     public void StartMatch()
     {
         numberOfPlayersReady++;

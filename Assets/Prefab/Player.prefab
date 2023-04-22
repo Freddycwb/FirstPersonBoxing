@@ -229,7 +229,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 384
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -802,7 +802,7 @@ GameObject:
   - component: {fileID: 5287165502439389721}
   - component: {fileID: 5973007463864187683}
   - component: {fileID: 1714540630312284931}
-  m_Layer: 7
+  m_Layer: 3
   m_Name: Left
   m_TagString: FastPunch
   m_Icon: {fileID: 0}
@@ -1424,7 +1424,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 255
+    m_Bits: 127
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -1594,6 +1594,8 @@ MonoBehaviour:
   leave: {fileID: 11400000, guid: 52912893e219cd345bb0a8455f3359e2, type: 2}
   shutdown: {fileID: 11400000, guid: 96a9ccb1486341f4a9f0d8286622d2b8, type: 2}
   camera: {fileID: 6813453812198324654}
+  playerLook: {fileID: 6813453812198324652}
+  canControl: 0
 --- !u!114 &6813453812482813309
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1633,8 +1635,10 @@ MonoBehaviour:
   sensor: {fileID: 5660049452742474650}
   mask:
     serializedVersion: 2
-    m_Bits: 8
+    m_Bits: 64
   radius: 0.5
+  sound: {fileID: 1389800656371301071, guid: 6f64fb2d36a0f8a4f8072a65975235a3, type: 3}
+  punchAirSound: {fileID: 8300000, guid: 479ec19fb99c1a34e85fd700d5122a83, type: 3}
 --- !u!114 &6271603263657754627
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1658,7 +1662,7 @@ MonoBehaviour:
   bluePants: {fileID: 2100000, guid: c484c3911e9202348b4346f2e9309096, type: 2}
   defenseAngle: 45
   sound: {fileID: 1389800656371301071, guid: 6f64fb2d36a0f8a4f8072a65975235a3, type: 3}
-  hitSound: {fileID: 8300000, guid: fef88e0d46a857d4b8555e80f3e5469c, type: 3}
+  hitSound: {fileID: 8300000, guid: 01fe5ae70edb277479081260551faa37, type: 3}
   defendSound: {fileID: 8300000, guid: e0a9bef85688b5c4db976106b1c1f0f6, type: 3}
 --- !u!114 &4609380195485681146
 MonoBehaviour:
@@ -1931,7 +1935,7 @@ GameObject:
   - component: {fileID: 6813453813693437845}
   - component: {fileID: 7014106413230042646}
   - component: {fileID: 4062834839926878445}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Body
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -2292,7 +2296,7 @@ GameObject:
   - component: {fileID: 4190514586155210061}
   - component: {fileID: 5679633230134702353}
   - component: {fileID: 5023073539375797052}
-  m_Layer: 7
+  m_Layer: 3
   m_Name: Right
   m_TagString: FastPunch
   m_Icon: {fileID: 0}

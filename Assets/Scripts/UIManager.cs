@@ -1,3 +1,4 @@
+using Newtonsoft.Json.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -10,11 +11,25 @@ public class UIManager : NetworkBehaviour
 {
     [SerializeField] private Relay relay;
 
+    [SerializeField] private GameObject settings;
+    [SerializeField] private Button resume;
+    [SerializeField] private Slider sensiSlider;
+    [SerializeField] private TextMeshProUGUI sensiValue;
+    [SerializeField] private Slider sfxSlider;
+    [SerializeField] private TextMeshProUGUI sfxValue;
+    [SerializeField] private Slider musicSlider;
+    [SerializeField] private TextMeshProUGUI musicValue;
+    [SerializeField] private AudioSource music;
+    [SerializeField] private Button backToMenu;
+    [SerializeField] private Button quit;
+    private bool playerPaused;
+
     [SerializeField] private GameObject menuCamera;
     [SerializeField] private Vector3 mainMenuCameraPosition;
     [SerializeField] private Vector3 mainMenuCameraRotation;
     [SerializeField] private Vector3 lobbyCameraPosition;
     [SerializeField] private Vector3 lobbyCameraRotation;
+    [SerializeField] private GameEvent inMainMenu;
 
     [SerializeField] private GameObject mainMenu;
 
@@ -27,15 +42,25 @@ public class UIManager : NetworkBehaviour
 
     [SerializeField] private GameObject lobby;
     [SerializeField] private GameObject invoice;
+    [SerializeField] private GameObject lobbyOptions;
+    [SerializeField] private GameObject tutorial;
+    [SerializeField] private Vector2 lobbyOptionsInitPos;
+    [SerializeField] private Vector2 lobbyOptionsSidePos;
+    [SerializeField] private Vector2 tutorialInitPos;
+    [SerializeField] private Vector2 tutorialSidePos;
     [SerializeField] private TextMeshProUGUI joinCode;
     [SerializeField] private Button ready;
     [SerializeField] private Button leave;
+    [SerializeField] private Button howToPlay;
     [SerializeField] private GameEvent readyClicked;
     [SerializeField] private GameEvent leaveClicked;
+    private bool showingTutorial;
 
     private int nPlayers;
 
     [SerializeField] private GameObject hud;
+
+    private PlayerInput playerInput;
 
     private HealthManager playerHealth;
 
@@ -67,6 +92,39 @@ public class UIManager : NetworkBehaviour
         relay.joined += ClientLobby;
         relay.failed += Failed;
 
+        resume.onClick.AddListener(() => {
+            CallOptions();
+        });
+
+        sensiSlider.onValueChanged.AddListener((delegate { 
+            SetSensibility(); 
+        }));
+
+        sfxSlider.onValueChanged.AddListener((delegate {
+            PlayerPrefs.SetFloat("sfxVolume", sfxSlider.value);
+            sfxValue.text = (sfxSlider.value * 100).ToString("F0");
+        }));
+
+        musicSlider.onValueChanged.AddListener((delegate {
+            PlayerPrefs.SetFloat("musicVolume", musicSlider.value);
+            music.volume = PlayerPrefs.GetFloat("musicVolume");
+            musicValue.text = (musicSlider.value * 100).ToString("F0");
+        }));
+
+        backToMenu.onClick.AddListener(() => {
+            if (!mainMenu.activeSelf)
+            {
+                StartCoroutine("Leave");
+                hud.SetActive(false);
+                playerPaused = false;
+            }
+            CallOptions();
+        });
+
+        quit.onClick.AddListener(() => {
+            Application.Quit();
+        });
+
         create.onClick.AddListener(() => {
             Create();
         });
@@ -77,7 +135,11 @@ public class UIManager : NetworkBehaviour
 
         ready.onClick.AddListener(() => {
             readyClicked.Raise();
-            ready.gameObject.SetActive(false);
+            ready.interactable = false;
+        });
+
+        howToPlay.onClick.AddListener(() => {
+            HowToPlay();
         });
 
         leave.onClick.AddListener(() => {
@@ -87,12 +149,70 @@ public class UIManager : NetworkBehaviour
 
     private void Start()
     {
+        inMainMenu.Raise();
         healthBar = healthSlider.fillRect.GetComponent<Image>();
         staminaBar = staminaSlider.fillRect.GetComponent<Image>();
         healthColor = healthBar.color;
         staminaColor = staminaBar.color;
+        if (PlayerPrefs.GetInt("firstTime") == 0)
+        {
+            PlayerPrefs.SetFloat("mouseSensitivity", 0.333f);
+            PlayerPrefs.SetFloat("sfxVolume", 1);
+            PlayerPrefs.SetFloat("musicVolume", 1);
+            PlayerPrefs.SetInt("firstTime", 1);
+        }
+        sensiSlider.value = PlayerPrefs.GetFloat("mouseSensitivity");
+        sensiValue.text = (sensiSlider.value * 300).ToString("F0");
+        sfxSlider.value = PlayerPrefs.GetFloat("sfxVolume");
+        sfxValue.text = (sfxSlider.value * 100).ToString("F0");
+        musicSlider.value = PlayerPrefs.GetFloat("musicVolume");
+        musicValue.text = (musicSlider.value * 100).ToString("F0");
     }
 
+    public void CallOptions()
+    {
+        settings.SetActive(!settings.activeSelf);
+        if (playerInput != null && playerInput.canControl)
+        {
+            playerInput.EnableControls(false);
+            menuCamera.SetActive(true);
+            playerPaused = true;
+        }
+        if (settings.activeSelf)
+        {
+            Cursor.lockState = CursorLockMode.None;
+        }
+        else
+        {
+            if (playerPaused)
+            {
+                menuCamera.SetActive(false);
+                playerInput.EnableControls(true);
+                playerPaused = false;
+                Cursor.lockState = CursorLockMode.Locked;
+            }
+        }
+    }
+
+    public void SetSensibility()
+    {
+        sensiValue.text = (sensiSlider.value * 300).ToString("F0");
+        if (playerInput != null)
+        {
+            playerInput.SetSense(sensiSlider.value);
+        }
+    }
+
+    private IEnumerator LeaveFromMatch()
+    {
+        yield return new WaitForEndOfFrame();
+        Destroy(NetworkManager.Singleton.gameObject);
+        yield return new WaitForEndOfFrame();
+        if (NetworkManager.Singleton == null)
+        {
+            Instantiate(networkManager);
+        }
+    }
 
     private void Create()
     {
@@ -101,7 +221,7 @@ public class UIManager : NetworkBehaviour
         menuCamera.transform.position = lobbyCameraPosition;
         menuCamera.transform.rotation = Quaternion.Euler(lobbyCameraRotation.x, lobbyCameraRotation.y, lobbyCameraRotation.z);
         modelPlayer.SetActive(false);
-        ready.gameObject.SetActive(false);
+        ready.interactable = false;
         nPlayers = 0;
         host = true;
     }
@@ -115,7 +235,7 @@ public class UIManager : NetworkBehaviour
             menuCamera.transform.position = lobbyCameraPosition;
             menuCamera.transform.rotation = Quaternion.Euler(lobbyCameraRotation.x, lobbyCameraRotation.y, lobbyCameraRotation.z);
             modelPlayer.SetActive(false);
-            ready.gameObject.SetActive(false);
+            ready.interactable = false;
             nPlayers = 0;
             host = false;
         }
@@ -141,9 +261,26 @@ public class UIManager : NetworkBehaviour
         StartCoroutine("Leave");
     }
 
+    private void HowToPlay()
+    {
+        showingTutorial = !showingTutorial;
+        StartCoroutine("MoveLobbyElements");
+    }
+
+    private IEnumerator MoveLobbyElements()
+    {
+        Vector2 optionsPos = lobbyOptions.transform.localPosition;
+        Vector2 tutorialPos = tutorial.transform.localPosition;
+        for (float i = 0; i < 1; i += Time.deltaTime)
+        {
+            lobbyOptions.transform.localPosition = showingTutorial ? Vector3.Lerp(optionsPos, lobbyOptionsSidePos, i) : Vector3.Lerp(optionsPos, lobbyOptionsInitPos, i);
+            tutorial.transform.localPosition = showingTutorial ? Vector3.Lerp(tutorialPos, tutorialSidePos, i) : Vector3.Lerp(tutorialPos, tutorialInitPos, i);
+            yield return new WaitForEndOfFrame();
+        }
+    }
+
     private IEnumerator Leave()
     {
-        Debug.Log("começou leave");
         leaveClicked.Raise();
         yield return new WaitForEndOfFrame();
         Destroy(NetworkManager.Singleton.gameObject);
@@ -158,22 +295,23 @@ public class UIManager : NetworkBehaviour
         menuCamera.transform.position = mainMenuCameraPosition;
         menuCamera.transform.rotation = Quaternion.Euler(mainMenuCameraRotation.x, mainMenuCameraRotation.y, mainMenuCameraRotation.z);
         modelPlayer.SetActive(true);
-        Debug.Log("terminou leave");
-
+        inMainMenu.Raise();
     }
 
     public void Shutdown()
     {
-        ready.gameObject.SetActive(false);
+        hud.SetActive(false);
+        menuCamera.SetActive(true);
+        StartCoroutine("Leave");
+        ready.interactable = false;
     }
 
     public void RemovePlayer()
     {
-        Debug.Log("Removeu o player");
         nPlayers--;
         if (nPlayers < 2)
         {
-            ready.gameObject.SetActive(false);
+            ready.interactable = false;
         }
     }
 
@@ -183,11 +321,13 @@ public class UIManager : NetworkBehaviour
         if (playerHealth == null)
         {
             playerHealth = FindObjectOfType<HealthManager>();
+            playerInput = playerHealth.GetComponent<PlayerInput>();
             playerAttack = playerHealth.GetComponent<Attack>();
+            playerInput.SetSense(sensiSlider.value);
         }
         if (nPlayers == 2)
         {
-            ready.gameObject.SetActive(true);
+            ready.interactable = true;
         }
         else if (!host)
         {
@@ -216,6 +356,11 @@ public class UIManager : NetworkBehaviour
         if (Input.GetKeyDown(KeyCode.Return) && mainMenu.activeSelf)
         {
             Join();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            CallOptions();
         }
 
         if (playerAttack != null) {
@@ -285,7 +430,7 @@ public class UIManager : NetworkBehaviour
     public void BackToLobby()
     {
         ClientLobby();
-        ready.gameObject.SetActive(true);
+        ready.interactable = true;
     }
 
     private void OnDestroy()

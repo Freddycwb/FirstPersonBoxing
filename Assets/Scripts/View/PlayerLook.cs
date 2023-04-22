@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerLook : MonoBehaviour, ILook
 {
-    public float mouseSensitivity = 100;
+    [HideInInspector] public float mouseSensitivity;
 
     private void OnEnable()
     {

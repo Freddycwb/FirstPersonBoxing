@@ -1,3 +1,4 @@
+using Newtonsoft.Json.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
@@ -8,8 +9,9 @@ public class PlayerInput : NetworkBehaviour, IInput
 {
     [SerializeField] private GameEvent spawn, ready, leave, shutdown;
     [SerializeField] private GameObject camera;
+    [SerializeField] private PlayerLook playerLook;
     private Transform head;
-    private bool canControl;
+    public bool canControl;
 
     private void Start()
     {
@@ -73,7 +75,6 @@ public class PlayerInput : NetworkBehaviour, IInput
     public void ShutdownClientRpc()
     {
         shutdown.Raise();
-        Debug.Log("Disparou o leave");
     }
 
     public void EnableControls(bool enable)
@@ -86,7 +87,15 @@ public class PlayerInput : NetworkBehaviour, IInput
         camera.SetActive(enable);
         camera.transform.GetChild(0).GetComponent<Camera>().enabled = !enable;
         camera.transform.GetChild(0).GetComponent<Camera>().enabled = enable;
+        playerLook.mouseSensitivity = PlayerPrefs.GetFloat("mouseSensitivity");
         canControl = enable;
+    }
+
+    public void SetSense(float value)
+    {
+        value *= 300;
+        PlayerPrefs.SetFloat("mouseSensitivity", value);
+        playerLook.mouseSensitivity = value;
     }
 
     public Vector3 direction

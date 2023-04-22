@@ -3,18 +3,19 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - FastPunch
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Hand
   - Water
   - UI
+  - Player
+  - Effect
   - 
-  - 
-  - 
-  - 
+  - Invisible
   - 
   - 
   - 

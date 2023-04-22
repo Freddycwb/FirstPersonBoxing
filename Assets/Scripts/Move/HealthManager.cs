@@ -31,11 +31,6 @@ public class HealthManager : NetworkBehaviour
             head.GetComponent<MeshRenderer>().material = blueHead;
             torso.transform.GetChild(1).GetComponent<MeshRenderer>().material = bluePants;
         }
-        if (IsOwner)
-        {
-            torso.transform.GetChild(0).gameObject.layer = 9;
-            torso.transform.GetChild(1).gameObject.layer = 9;
-        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -46,13 +41,19 @@ public class HealthManager : NetworkBehaviour
             Vector3 dif = other.transform.parent.parent.parent.position - transform.position;
             float rotY = Mathf.Atan2(dif.z, dif.x) * Mathf.Rad2Deg;
 
-            Vector3 objFwd = transform.GetChild(0).forward;
-            float angle = Vector3.Angle(objFwd, Vector3.forward);
-            float sign = Mathf.Sign(Vector3.Cross(objFwd, Vector3.forward).y);
+            float difAngle = rotY + transform.GetChild(0).eulerAngles.y - 450;
+            if (difAngle > 360)
+            {
+                difAngle -= 360;
+            }
+            else if (difAngle < -360)
+            {
+                difAngle += 360;
+            }
 
-            float otherAngle = Mathf.Abs(-(rotY - 90)) - Mathf.Abs(angle * sign);
+            Debug.Log(difAngle);
 
-            if (Mathf.Abs(otherAngle) < defenseAngle)
+            if (Mathf.Abs(difAngle) < defenseAngle || Mathf.Abs(difAngle) > 360 - defenseAngle)
             {
                 if (!IsHost) TakeDamageServerRpc();
                 else TakeDamageClientRpc();

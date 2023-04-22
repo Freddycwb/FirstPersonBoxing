@@ -26,6 +26,9 @@ public class Attack : NetworkBehaviour
 
     private bool isLeft;
 
+    [SerializeField] private GameObject sound;
+    [SerializeField] private AudioClip punchAirSound;
+
     void Start()
     {
         _input = GetComponent<IInput>();
@@ -115,6 +118,7 @@ public class Attack : NetworkBehaviour
     void FastPunchClientRpc()
     {
         hands.SetTrigger("FastPunch");
+        Instantiate(sound, transform.position, transform.rotation).GetComponent<Sound>().audio = punchAirSound;
         isLeft = !isLeft;
     }
 }
