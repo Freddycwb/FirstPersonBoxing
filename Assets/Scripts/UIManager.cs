@@ -135,7 +135,7 @@ public class UIManager : NetworkBehaviour
 
         ready.onClick.AddListener(() => {
             readyClicked.Raise();
-            ready.interactable = false;
+            //ready.interactable = false;
         });
 
         howToPlay.onClick.AddListener(() => {
@@ -221,7 +221,7 @@ public class UIManager : NetworkBehaviour
         menuCamera.transform.position = lobbyCameraPosition;
         menuCamera.transform.rotation = Quaternion.Euler(lobbyCameraRotation.x, lobbyCameraRotation.y, lobbyCameraRotation.z);
         modelPlayer.SetActive(false);
-        ready.interactable = false;
+        //ready.interactable = false;
         nPlayers = 0;
         host = true;
     }
@@ -235,7 +235,7 @@ public class UIManager : NetworkBehaviour
             menuCamera.transform.position = lobbyCameraPosition;
             menuCamera.transform.rotation = Quaternion.Euler(lobbyCameraRotation.x, lobbyCameraRotation.y, lobbyCameraRotation.z);
             modelPlayer.SetActive(false);
-            ready.interactable = false;
+            //ready.interactable = false;
             nPlayers = 0;
             host = false;
         }
@@ -303,7 +303,7 @@ public class UIManager : NetworkBehaviour
         hud.SetActive(false);
         menuCamera.SetActive(true);
         StartCoroutine("Leave");
-        ready.interactable = false;
+        //ready.interactable = false;
     }
 
     public void RemovePlayer()
@@ -311,7 +311,7 @@ public class UIManager : NetworkBehaviour
         nPlayers--;
         if (nPlayers < 2)
         {
-            ready.interactable = false;
+            //ready.interactable = false;
         }
     }
 
