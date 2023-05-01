@@ -8,6 +8,7 @@ using Unity.Mathematics;
 
 public class HealthManager : NetworkBehaviour
 {
+    public bool TESTE;
     [SerializeField] private GameEvent updateHPBar, takeDamage, defeated;
     public int hp;
     [HideInInspector] public int maxHp;
@@ -38,31 +39,40 @@ public class HealthManager : NetworkBehaviour
         if (!IsOwner) return;
         if (other.CompareTag("FastPunch"))
         {
-            Vector3 dif = other.transform.parent.parent.parent.position - transform.position;
-            float rotY = Mathf.Atan2(dif.z, dif.x) * Mathf.Rad2Deg;
-
-            float difAngle = rotY + transform.GetChild(0).eulerAngles.y - 450;
-            if (difAngle > 360)
-            {
-                difAngle -= 360;
-            }
-            else if (difAngle < -360)
-            {
-                difAngle += 360;
-            }
-
-            Debug.Log(difAngle);
-
-            if (Mathf.Abs(difAngle) < defenseAngle || Mathf.Abs(difAngle) > 360 - defenseAngle)
-            {
-                if (!IsHost) TakeDamageServerRpc();
-                else TakeDamageClientRpc();
-            }
-            else
+            if (TESTE)
             {
                 if (!IsHost) DefendDamageServerRpc();
                 else DefendDamageClientRpc();
             }
+            else
+            {
+                Vector3 dif = other.transform.parent.parent.parent.position - transform.position;
+                float rotY = Mathf.Atan2(dif.z, dif.x) * Mathf.Rad2Deg;
+
+                float difAngle = rotY + transform.GetChild(0).eulerAngles.y - 450;
+                if (difAngle > 360)
+                {
+                    difAngle -= 360;
+                }
+                else if (difAngle < -360)
+                {
+                    difAngle += 360;
+                }
+
+                Debug.Log(difAngle);
+
+                if (Mathf.Abs(difAngle) < defenseAngle || Mathf.Abs(difAngle) > 360 - defenseAngle)
+                {
+                    if (!IsHost) TakeDamageServerRpc();
+                    else TakeDamageClientRpc();
+                }
+                else
+                {
+                    if (!IsHost) DefendDamageServerRpc();
+                    else DefendDamageClientRpc();
+                }
+            }
+
         }
     }
 
